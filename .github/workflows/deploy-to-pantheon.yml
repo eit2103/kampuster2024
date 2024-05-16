@@ -21,7 +21,8 @@ jobs:
       - name: Add Pantheon to known_hosts
         run: |
           mkdir -p ~/.ssh
-          ssh-keyscan -H codeserver.dev.<site-id>.drush.in >> ~/.ssh/known_hosts
+          echo "${{ secrets.PANTHEON_GIT_URL }}" | awk -F'[//@:]+' '{print $4}' 
+| xargs -I {} ssh-keyscan -H {} >> ~/.ssh/known_hosts
 
       - name: Add Pantheon remote
         run: git remote add pantheon ${{ secrets.PANTHEON_GIT_URL }}
