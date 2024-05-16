@@ -13,26 +13,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Install Terminus
-        run: |
-          wget 
-https://github.com/pantheon-systems/terminus/releases/download/3.0.4/terminus.phar
-          chmod +x terminus.phar
-          sudo mv terminus.phar /usr/local/bin/terminus
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.PANTHEON_SSH_PRIVATE_KEY }}
 
-      - name: Authenticate with Pantheon
-        env:
-          TERMINUS_HIDE_UPDATE_MESSAGE: 1
-        run: terminus auth:login --machine-token=${{ 
-secrets.PANTHEON_MACHINE_TOKEN }}
+      - name: Add Pantheon remote
+        run: git remote add pantheon ${{ secrets.PANTHEON_GIT_URL }}
 
-      - name: Clone Pantheon repository
-        run: |
-          git clone $(terminus connection:info ${{ secrets.PANTHEON_SITE_NAME 
-}}.dev --field=git_url) pantheon
-          rsync -a --exclude='.git' --delete . pantheon/
-          cd pantheon
-          git add .
-          git commit -m "Deploy from GitHub Actions"
-          git push origin master
-
+      - name: Push to Pantheon
+        run: git push -f pantheon main
