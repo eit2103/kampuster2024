@@ -1,0 +1,9 @@
+name: 'User Role Selection'
+type: module
+description: 'Allows users to select their role during registration.'
+core_version_requirement: ^8 || ^9
+package: Custom
+dependencies:
+  - user
+libraries:
+  - user_role_selection/user_role_selection_styles

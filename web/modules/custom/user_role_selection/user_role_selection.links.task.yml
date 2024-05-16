@@ -1,0 +1,5 @@
+user_role_selection.settings:
+  route_name: user_role_selection.settings
+  title: 'User Role Selection Settings'
+  base_route: entity.user.collection
+  weight: 100

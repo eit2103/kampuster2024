@@ -1,0 +1,5 @@
+user_role_selection_styles:
+  version: 1.x
+  css:
+    theme:
+      css/user_role_selection.css: {}

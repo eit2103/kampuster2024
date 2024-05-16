@@ -1,0 +1,12 @@
+.role-selection {
+  margin-bottom: 20px;
+}
+
+.role-selection input[type="radio"] {
+  margin-right: 10px;
+}
+
+.role-selection label {
+  margin-right: 20px;
+  font-weight: bold;
+}

@@ -1,0 +1,70 @@
+<?php
+
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\user\Entity\Role;
+use Drupal\user\Entity\User;
+
+/**
+ * Implements hook_form_FORM_ID_alter() to modify the user registration form.
+ */
+function registration_form_role_selection_form_user_register_form_alter(&$form, FormStateInterface $form_state, $form_id) {
+  if ($form_id == 'user_register_form') {
+    // Load all roles except for "anonymous", "authenticated", and "administrator".
+    $roles = Role::loadMultiple();
+
+    $role_options = [];
+    foreach ($roles as $role) {
+      if (!in_array($role->id(), ['anonymous', 'authenticated', 'administrator'])) {
+        $role_options[$role->id()] = $role->label();
+      }
+    }
+
+    // Add the role selection field to the registration form.
+    $form['account']['role_selection'] = [
+      '#type' => 'select',
+      '#title' => t('Role'),
+      '#options' => $role_options,
+      '#default_value' => '',
+      '#description' => t('Select the role for the new user.'),
+      '#weight' => -10, // Move this field to the top
+      '#required' => TRUE,
+    ];
+
+    // Validate that a role is selected.
+    $form['#validate'][] = 'registration_form_role_selection_user_register_form_validate';
+    // Save the selected role to the user entity.
+    $form['#submit'][] = 'registration_form_role_selection_user_register_form_submit';
+  }
+}
+
+/**
+ * Form validation handler for the user registration form.
+ */
+function registration_form_role_selection_user_register_form_validate($form, FormStateInterface $form_state) {
+  $role = $form_state->getValue('role_selection');
+  if (empty($role)) {
+    $form_state->setErrorByName('role_selection', t('You must select a role.'));
+  }
+}
+
+/**
+ * Form submission handler for the user registration form.
+ */
+function registration_form_role_selection_user_register_form_submit($form, FormStateInterface $form_state) {
+  $role = $form_state->getValue('role_selection');
+  if (!empty($role)) {
+    $user = $form_state->getFormObject()->getEntity();
+    $user->addRole($role);
+    $user->save();  // Ensure the user entity is saved with the new role
+  }
+}
+
+/**
+ * Implements hook_entity_presave().
+ */
+function registration_form_role_selection_entity_presave(User $user) {
+  $role = \Drupal::request()->request->get('role_selection');
+  if (!empty($role) && !$user->isAuthenticated() && $user->isNew()) {
+    $user->addRole($role);
+  }
+}

@@ -1,0 +1,69 @@
+<?php
+
+/**
+ * @file
+ * User Role Selection module.
+ */
+
+/**
+ * Implements hook_form_FORM_ID_alter() to add role selection to user registration form.
+ */
+function user_role_selection_form_user_register_form_alter(&$form, \Drupal\Core\Form\FormStateInterface $form_state, $form_id) {
+  // Load the role options from the settings.
+  $config = \Drupal::config('user_role_selection.settings');
+  $user_roles = $config->get('user_roles') ?: [];
+  $role_options = [];
+
+  // Get role labels for the options and maintain sort order.
+  $role_sort_order = $config->get('role_sort_order') ?: array_keys($user_roles);
+  foreach ($role_sort_order as $role_id) {
+    if (in_array($role_id, $user_roles)) {
+      $role = \Drupal\user\Entity\Role::load($role_id);
+      if ($role) {
+        $role_options[$role_id] = $role->label();
+      }
+    }
+  }
+
+  // Add the role selection field to the registration form using radio buttons.
+  $form['account']['roles'] = [
+    '#type' => 'radios',
+    '#title' => t('Role'),
+    '#options' => $role_options,
+    '#required' => TRUE,
+    '#weight' => -5,
+    '#default_value' => key($role_options), // Set the default value to the first role option.
+    '#attributes' => ['class' => ['role-selection']],
+  ];
+}
+
+/**
+ * Implements hook_user_insert() to assign the selected role to the new user.
+ */
+function user_role_selection_user_insert(\Drupal\user\UserInterface $account) {
+  $selected_role = \Drupal::request()->request->get('roles');
+  if (!empty($selected_role)) {
+    $account->addRole($selected_role);
+    $account->save();
+  }
+}
+
+/**
+ * Implements hook_theme() to add custom CSS.
+ */
+function user_role_selection_theme() {
+  return [
+    'user_role_selection_styles' => [
+      'render element' => 'element',
+      'path' => \Drupal::service('extension.path.resolver')->getPath('module', 'user_role_selection') . '/templates',
+      'template' => 'user-role-selection-styles',
+    ],
+  ];
+}
+
+/**
+ * Implements hook_preprocess_HOOK() to add custom CSS.
+ */
+function user_role_selection_preprocess_html(&$variables) {
+  $variables['#attached']['library'][] = 'user_role_selection/user_role_selection_styles';
+}

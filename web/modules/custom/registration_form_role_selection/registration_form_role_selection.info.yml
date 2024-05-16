@@ -1,0 +1,7 @@
+name: 'Registration Form Role Selection'
+type: module
+description: 'Adds role selection to user registration form.'
+core_version_requirement: ^10
+package: Custom
+dependencies:
+  - drupal:roleassign

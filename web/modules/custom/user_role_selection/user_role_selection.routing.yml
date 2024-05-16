@@ -1,0 +1,8 @@
+
+user_role_selection.settings:
+  path: '/admin/people/user-role-selection'
+  defaults:
+    _form: '\Drupal\user_role_selection\Form\UserRoleSelectionAdminSettingsForm'
+    _title: 'User Role Selection Settings'
+  requirements:
+    _permission: 'administer users'
