@@ -10,23 +10,28 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
+    - name: Checkout code
+      uses: actions/checkout@v2
 
-      - name: Set up SSH
-        uses: webfactory/ssh-agent@v0.5.3
-        with:
-          ssh-private-key: ${{ secrets.PANTHEON_SSH_PRIVATE_KEY }}
+    - name: Set up PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '7.4' # Set this to the PHP version your site uses
 
-      - name: Add Pantheon to known_hosts
-        run: |
-          mkdir -p ~/.ssh
-          ssh-keyscan -H 
-codeserver.dev.81db7050-1ff8-48c7-83fe-2f8224d8e014.drush.in >> 
-~/.ssh/known_hosts
+    - name: Install Terminus
+      run: |
+        curl -O https://raw.githubusercontent.com/pantheon-systems/terminus-installer/master/builds/installer.phar
+        php installer.phar install
+        export PATH="$HOME/terminus/bin:$PATH"
 
-      - name: Add Pantheon remote
-        run: git remote add pantheon ${{ secrets.PANTHEON_GIT_URL }}
+    - name: Authenticate Terminus
+      run: terminus auth:login --machine-token=${{ secrets.PANTHEON_MACHINE_TOKEN }}
 
-      - name: Push to Pantheon
-        run: git push -f pantheon main
+    - name: Deploy code to Pantheon
+      run: |
+        terminus connection:set ${{ secrets.PANTHEON_SITE_NAME }} dev git
+        git remote add pantheon ssh://codeserver.dev.${{ secrets.PANTHEON_SITE_UUID }}@codeserver.dev.${{ secrets.PANTHEON_SITE_UUID }}.drush.in:2222/~/repository.git
+        git push -f pantheon main
+
+    - name: Clear Pantheon cache
+      run: terminus env:clear-cache ${{ secrets.PANTHEON_SITE_NAME }}.dev
