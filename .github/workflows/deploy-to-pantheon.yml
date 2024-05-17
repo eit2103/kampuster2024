@@ -30,6 +30,11 @@ jobs:
     - name: Set Pantheon Connection to Git
       run: terminus connection:set ${{ secrets.PANTHEON_SITE_NAME }}.dev git
 
+    - name: Add Pantheon SSH Key to Known Hosts
+      run: |
+        mkdir -p ~/.ssh
+        ssh-keyscan -p 2222 codeserver.dev.${{ secrets.PANTHEON_SITE_UUID }}.drush.in >> ~/.ssh/known_hosts
+
     - name: Deploy code to Pantheon
       run: |
         git remote add pantheon ssh://codeserver.dev.${{ secrets.PANTHEON_SITE_UUID }}@codeserver.dev.${{ secrets.PANTHEON_SITE_UUID }}.drush.in:2222/~/repository.git
