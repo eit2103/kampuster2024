@@ -16,7 +16,7 @@ jobs:
     - name: Set up PHP
       uses: shivammathur/setup-php@v2
       with:
-        php-version: '7.4' # Set this to the PHP version your site uses
+        php-version: '7.4' # Adjust this to match your site's PHP version
 
     - name: Install Terminus
       run: |
@@ -27,9 +27,11 @@ jobs:
     - name: Authenticate Terminus
       run: terminus auth:login --machine-token=${{ secrets.PANTHEON_MACHINE_TOKEN }}
 
+    - name: Set Pantheon Connection to Git
+      run: terminus connection:set ${{ secrets.PANTHEON_SITE_NAME }}.dev git
+
     - name: Deploy code to Pantheon
       run: |
-        terminus connection:set ${{ secrets.PANTHEON_SITE_NAME }} dev git
         git remote add pantheon ssh://codeserver.dev.${{ secrets.PANTHEON_SITE_UUID }}@codeserver.dev.${{ secrets.PANTHEON_SITE_UUID }}.drush.in:2222/~/repository.git
         git push -f pantheon main
 
